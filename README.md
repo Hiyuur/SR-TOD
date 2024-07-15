@@ -24,7 +24,9 @@ The installation and usage of mmdetection can be referred to at the following li
 
 To use the AI-TOD evaluation metrics, you need to download aitodpycocotools. You can install it using the following command:
 
-> pip install "git+https://github.com/jwwangchn/cocoapi-aitod.git#subdirectory=aitodpycocotools"
+```shell
+pip install "git+https://github.com/jwwangchn/cocoapi-aitod.git#subdirectory=aitodpycocotools"
+```
 
 For other environment requirements, please refer to mmdetection.
 
@@ -34,9 +36,12 @@ The training and test commands can also be referenced from mmdetection.
 
 1 gpu:
 
-> python tools/train.py ./srtod_project/srtod_cascade_rcnn/config/srtod-cascade-rcnn_r50_fpn_1x_coco.py
-
-> python tools/test.py ./srtod_project/srtod_cascade_rcnn/config/srtod-cascade-rcnn_r50_fpn_1x_coco.py your_model.pth
+```shell
+python tools/train.py ./srtod_project/srtod_cascade_rcnn/config/srtod-cascade-rcnn_r50_fpn_1x_coco.py
+```
+```shell
+python tools/test.py ./srtod_project/srtod_cascade_rcnn/config/srtod-cascade-rcnn_r50_fpn_1x_coco.py your_model.pth
+```
 
 If you need to use more GPUs, you should use ./tools/dist_train.sh instead of tools/train.py.
 
