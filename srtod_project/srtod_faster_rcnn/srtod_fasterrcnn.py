@@ -1,21 +1,19 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from mmdet.registry import MODELS
 from mmdet.utils import ConfigType, OptConfigType, OptMultiConfig
-from mmdet.models.detectors.two_stage import TwoStageDetector
+from .srtod_twostagedetector import SRTOD_TwoStageDetector
+from mmdet.registry import MODELS
 import torch
 import torch.nn as nn
 from torch import Tensor
 from typing import List, Tuple, Union
 
+import torch.nn.functional as F
+
 from mmdet.structures import SampleList
 
 import copy
 import warnings
-
-from .srtod_twostagedetector import SRTOD_TwoStageDetector
-
-import torch.nn.functional as F
-
 
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
@@ -130,20 +128,20 @@ class DGFE(nn.Module):
         return x_out
 
 
+
 @MODELS.register_module()
-class SRTOD_CascadeRCNN(SRTOD_TwoStageDetector):
-    r"""Implementation of `Cascade R-CNN: Delving into High Quality Object
-    Detection <https://arxiv.org/abs/1906.09756>`_"""
+class SRTOD_FasterRCNN(SRTOD_TwoStageDetector):
+    """Implementation of `Faster R-CNN <https://arxiv.org/abs/1506.01497>`_"""
 
     def __init__(self,
                  backbone: ConfigType,
+                 rpn_head: ConfigType,
+                 roi_head: ConfigType,
+                 train_cfg: ConfigType,
+                 test_cfg: ConfigType,
+                 learnable_thresh: float = 0.0156862,
                  neck: OptConfigType = None,
                  loss_res: OptConfigType = None,
-                 rpn_head: OptConfigType = None,
-                 learnable_thresh: float = 0.0156862,
-                 roi_head: OptConfigType = None,
-                 train_cfg: OptConfigType = None,
-                 test_cfg: OptConfigType = None,
                  data_preprocessor: OptConfigType = None,
                  init_cfg: OptMultiConfig = None) -> None:
         super().__init__(
@@ -153,47 +151,18 @@ class SRTOD_CascadeRCNN(SRTOD_TwoStageDetector):
             roi_head=roi_head,
             train_cfg=train_cfg,
             test_cfg=test_cfg,
-            data_preprocessor=data_preprocessor,
-            init_cfg=init_cfg)
+            init_cfg=init_cfg,
+            data_preprocessor=data_preprocessor)
         
         self.loss_res = MODELS.build(loss_res)
         self.rh = RH()
         self.dgfe = DGFE()
 
-
         self.learnable_thresh = torch.nn.Parameter(torch.tensor(learnable_thresh), requires_grad=True)
+        
 
-    def _forward(self, batch_inputs: Tensor,
-                 batch_data_samples: SampleList) -> tuple:
-        """Network forward process. Usually includes backbone, neck and head
-        forward without any post-processing.
 
-        Args:
-            batch_inputs (Tensor): Inputs with shape (N, C, H, W).
-            batch_data_samples (list[:obj:`DetDataSample`]): Each item contains
-                the meta information of each image and corresponding
-                annotations.
 
-        Returns:
-            tuple: A tuple of features from ``rpn_head`` and ``roi_head``
-            forward.
-        """
-        results = ()
-        x = self.extract_feat(batch_inputs)
-
-        if self.with_rpn:
-            rpn_results_list = self.rpn_head.predict(
-                x, batch_data_samples, rescale=False)
-        else:
-            assert batch_data_samples[0].get('proposals', None) is not None
-            rpn_results_list = [
-                data_sample.proposals for data_sample in batch_data_samples
-            ]
-        roi_outs = self.roi_head.forward(x, rpn_results_list,
-                                         batch_data_samples)
-        results = results + (roi_outs, )
-        return results
-    
     def loss(self, batch_inputs: Tensor,
              batch_data_samples: SampleList,
              img_inputs: Tensor) -> dict:
@@ -294,7 +263,7 @@ class SRTOD_CascadeRCNN(SRTOD_TwoStageDetector):
         """
 
         assert self.with_bbox, 'Bbox head must be implemented.'
-
+        
         x = self.extract_feat(batch_inputs)
         # If there are no pre-defined proposals, use RPN to get proposals
 
@@ -311,7 +280,7 @@ class SRTOD_CascadeRCNN(SRTOD_TwoStageDetector):
         x[0] = self.dgfe(x[0], difference_map, self.learnable_thresh)
         x = tuple(x) 
 
-
+        # If there are no pre-defined proposals, use RPN to get proposals
         if batch_data_samples[0].get('proposals', None) is None:
             rpn_results_list = self.rpn_head.predict(
                 x, batch_data_samples, rescale=False)
@@ -326,5 +295,3 @@ class SRTOD_CascadeRCNN(SRTOD_TwoStageDetector):
         batch_data_samples = self.add_pred_to_datasample(
             batch_data_samples, results_list)
         return batch_data_samples
-    
-    

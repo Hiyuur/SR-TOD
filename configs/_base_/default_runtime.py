@@ -16,7 +16,7 @@ env_cfg = dict(
 
 vis_backends = [dict(type='LocalVisBackend')]
 visualizer = dict(
-    type='DetLocalVisualizer', vis_backends=vis_backends, name='visualizer', save_dir="/root/nas-public-linkdata/mmdet/result/vis/feature_enhance")
+    type='DetLocalVisualizer', vis_backends=vis_backends, name='visualizer', save_dir="/root/nas-public-linkdata/mmdet/public_result/vis/1/")
 log_processor = dict(type='LogProcessor', window_size=50, by_epoch=True)
 
 log_level = 'INFO'

@@ -160,11 +160,7 @@ class SRTOD_CascadeRCNN(SRTOD_TwoStageDetector):
         self.rh = RH()
         self.dgfe = DGFE()
 
-        #0.1568627
-        #0.0392156
-        #0.0196078
-        #0.0156862
-        #0.0117647
+
         self.learnable_thresh = torch.nn.Parameter(torch.tensor(learnable_thresh), requires_grad=True)
 
     def _forward(self, batch_inputs: Tensor,
@@ -222,7 +218,7 @@ class SRTOD_CascadeRCNN(SRTOD_TwoStageDetector):
         #difference map
         difference_map = torch.sum(torch.abs(r_img - img_inputs),dim=1,keepdim=True) / 3 
 
-        print("thresh:", self.learnable_thresh * 255)
+        # print("thresh:", self.learnable_thresh * 255)
             
         x = list(x) 
         x[0] = self.dgfe(x[0], difference_map, self.learnable_thresh)
@@ -309,7 +305,7 @@ class SRTOD_CascadeRCNN(SRTOD_TwoStageDetector):
         #difference map
         difference_map = torch.sum(torch.abs(r_img - img_inputs),dim=1,keepdim=True) / 3 
        
-        print("thresh:", self.learnable_thresh * 255)
+        # print("thresh:", self.learnable_thresh * 255)
         
         x = list(x) 
         x[0] = self.dgfe(x[0], difference_map, self.learnable_thresh)

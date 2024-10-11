@@ -48,4 +48,12 @@ If you need to use more GPUs, you should use ./tools/dist_train.sh instead of to
 # DroneSwarms
 If you want to access the DroneSwarms dataset, please visit the following link：[DroneSwarms](https://hiyuur.github.io)
 
-
+# Reference
+```shell
+@article{cao2024visible,
+  title={Visible and Clear: Finding Tiny Objects in Difference Map},
+  author={Cao, Bing and Yao, Haiyu and Zhu, Pengfei and Hu, Qinghua},
+  journal={arXiv preprint arXiv:2405.11276},
+  year={2024}
+}
+```
